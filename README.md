@@ -3,7 +3,7 @@ guice-bridge-jit-injector
 
 __Get Guice to work nicely with Jersey-HK2__
 
-Upgrading a Guice-ified project to Jersey 2 requires finding all undeclared bindings and adding them to the Guice config, this adapter extends the capabilities of the bridge to include Guice JIT bindings and removes the need to declare every binding.
+If are using Guice with __Jersey 2__, you will almost certainly need to inject Guice components into Jersey components. Unlike regular Guice, any Guice components injected into Jersey will need a binding declared in the Guice config. This adapter extends the capabilities of the bridge to include Guice JIT bindings and removes the need for pre-declaration.
 
 __Using the adapter__
 
@@ -16,6 +16,7 @@ To enable the adapter, simply use the GuiceBridgeJitInjector instead of the regu
     	// Undeclared bindings under org.ttang packages will be bound automatically by Guice
     	guiceBridge.bridgeGuiceInjector(GuiceBridgeJitInjector.create(new GuiceModule(), Package.getPackage("org.ttang")));
 ```
+In a real application you will probably want to use this same Injector instance for your regular code as well, so you could pass the Guice injector to the Jersey ResourceConfig through a ServletContext attribute and use it to initialize the bridge.
 
 __The package requirement__
 
