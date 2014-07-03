@@ -3,7 +3,7 @@ guice-bridge-jit-injector
 
 __Get Guice to work nicely with Jersey-HK2__
 
-Upgrading a Guice-ified project to Jersey 2 requires finding all undeclared bindings and adding them to the Guice config, this adapter removes the need for that exercise.
+Upgrading a Guice-ified project to Jersey 2 requires finding all undeclared bindings and adding them to the Guice config, this adapter extends the capabilities of the HK2 Guice bridge and removes the need to declare every binding.
 
 __Using the adapter__
 
