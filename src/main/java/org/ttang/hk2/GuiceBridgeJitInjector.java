@@ -1,3 +1,18 @@
+/*
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */ 
+
 package org.ttang.hk2;
 
 import java.lang.annotation.Annotation;
@@ -20,21 +35,35 @@ import com.google.inject.Scope;
 import com.google.inject.TypeLiteral;
 import com.google.inject.spi.TypeConverterBinding;
 
+/**
+ * This adapter extends the capabilities of the HK2-Guice bridge to include Guice JIT bindings
+ * this removes the need to declare every binding.
+ * 
+ * To enable the adapter, simply use the GuiceBridgeJitInjector instead of the regular Guice injector.
+ * 
+ *    guiceBridge.bridgeGuiceInjector(GuiceBridgeJitInjector.create(new GuiceModule(), Package.getPackage("com.company.yourapp")));
+ * 
+ */
 public class GuiceBridgeJitInjector implements Injector {
 
 	private Injector guiceInjector;
 	private Collection<String> packageNames;
-	
-	/* Convenience method for creation */
+
+	/**
+	 *  Creates a new adapter, this is a convenience method.
+	 */
 	public static GuiceBridgeJitInjector create(AbstractModule guiceModule, Collection<Package> packages) {
 		return new GuiceBridgeJitInjector(Guice.createInjector(guiceModule),packages);
 	}
-	
-	/* Convenience method for creation */
+
+	/**
+	 *  Convenience method for creation.
+	 *  Sample use: GuiceBridgeJitInjector.create(new GuiceModule(), Packages.getPackage("org.company.yourapp"))
+	 */
 	public static GuiceBridgeJitInjector create (AbstractModule guiceModule, Package... packages) {
 		return new GuiceBridgeJitInjector(Guice.createInjector(guiceModule),Arrays.asList(packages));
 	}
-	
+
 	public GuiceBridgeJitInjector(Injector guiceInjector, Collection<Package> packages) {
 
 		this.guiceInjector = guiceInjector;
@@ -45,7 +74,7 @@ public class GuiceBridgeJitInjector implements Injector {
 		}
 
 	}
-	
+
 	private boolean isInsideTargettedPackage(Class<?> type) {
 		String packge = type.getPackage().getName();
 		for (String packageName : packageNames) {
@@ -53,10 +82,10 @@ public class GuiceBridgeJitInjector implements Injector {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
-	
+
 	public Injector createChildInjector(Iterable<? extends Module> arg0) {
 		return guiceInjector.createChildInjector(arg0);
 	}
@@ -88,11 +117,11 @@ public class GuiceBridgeJitInjector implements Injector {
 	public <T> Binding<T> getExistingBinding(Key<T> arg0) {
 
 		Binding<T> binding = guiceInjector.getExistingBinding(arg0);
-		
+
 		if (binding == null && isInsideTargettedPackage(arg0.getTypeLiteral().getRawType())) {
 			return guiceInjector.getBinding(arg0);
 		}
-		
+
 		return null;
 	}
 

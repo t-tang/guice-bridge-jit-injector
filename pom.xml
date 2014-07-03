@@ -11,4 +11,21 @@
   		<version>3.0</version>
   	</dependency>
   </dependencies>
+  <url>https://github.com/t-tang/guice-bridge-jit-injector</url>
+  <description>This adapter extends the capabilities of the bridge to include Guice JIT bindings and removes the need to declare every binding.</description>
+    <licenses>
+    <license>
+      <name>GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007</name>
+      <url>https://www.gnu.org/licenses/gpl.txt</url>
+    </license>
+    <license>
+      <name>GNU LESSER GENERAL PUBLIC LICENSE Version 3, 29 June 2007</name>
+      <url>https://www.gnu.org/licenses/lgpl.txt</url>
+    </license>
+  </licenses>
+  <scm>
+  	<url>https://github.com/t-tang/guice-bridge-jit-injector</url>
+  	<connection>git:https://github.com/t-tang/guice-bridge-jit-injector</connection>
+  	<developerConnection>https://github.com/t-tang/guice-bridge-jit-injector</developerConnection>
+  </scm>
 </project>
