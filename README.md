@@ -1,7 +1,7 @@
 guice-bridge-jit-injector
 =========================
 
-Enable JIT bindings in the HK2-Guice bridge
+__Enable JIT bindings in the HK2-Guice bridge__
 
 The HK2 Guice bridge effectively disables the Guice JIT binding function. Upgrading a Guice-ified project from Jersey 1 to Jersey 2 requires manually finding all of the JIT injections and declaring them in the Guice config, the adapter removes the need for this exercise. 
 
