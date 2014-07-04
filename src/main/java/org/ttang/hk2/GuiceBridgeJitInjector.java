@@ -37,7 +37,8 @@ import com.google.inject.spi.TypeConverterBinding;
 
 /**
  * This adapter extends the capabilities of the HK2-Guice bridge to include Guice JIT bindings
- * this removes the need to declare every binding.
+ * this removes the need to declare bindings for all Guice components which are to be injected
+ * into Jersey.
  * 
  * To enable the adapter, simply use the GuiceBridgeJitInjector instead of the regular Guice injector.
  * 
@@ -49,19 +50,25 @@ public class GuiceBridgeJitInjector implements Injector {
 	private Injector guiceInjector;
 	private Collection<String> packageNames;
 
-	/**
+	/*
 	 *  Creates a new adapter, this is a convenience method.
 	 */
 	public static GuiceBridgeJitInjector create(AbstractModule guiceModule, Collection<Package> packages) {
 		return new GuiceBridgeJitInjector(Guice.createInjector(guiceModule),packages);
 	}
 
-	/**
+	/*
 	 *  Convenience method for creation.
-	 *  Sample use: GuiceBridgeJitInjector.create(new GuiceModule(), Packages.getPackage("org.company.yourapp"))
 	 */
 	public static GuiceBridgeJitInjector create (AbstractModule guiceModule, Package... packages) {
 		return new GuiceBridgeJitInjector(Guice.createInjector(guiceModule),Arrays.asList(packages));
+	}
+
+	/*
+	 *  Convenience method for creation.
+	 */
+	public static GuiceBridgeJitInjector create (Injector guiceInjector, Package... packages) {
+		return new GuiceBridgeJitInjector(guiceInjector, Arrays.asList(packages));
 	}
 
 	public GuiceBridgeJitInjector(Injector guiceInjector, Collection<Package> packages) {
@@ -117,9 +124,13 @@ public class GuiceBridgeJitInjector implements Injector {
 	public <T> Binding<T> getExistingBinding(Key<T> arg0) {
 
 		Binding<T> binding = guiceInjector.getExistingBinding(arg0);
+		
+		if (binding != null) {
+			return binding;
+		}
 
-		if (binding == null && isInsideTargettedPackage(arg0.getTypeLiteral().getRawType())) {
-			return guiceInjector.getBinding(arg0);
+		if (isInsideTargettedPackage(arg0.getTypeLiteral().getRawType())) {
+				return guiceInjector.getBinding(arg0);
 		}
 
 		return null;
