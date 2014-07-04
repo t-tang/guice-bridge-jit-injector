@@ -53,31 +53,31 @@ public class GuiceBridgeJitInjector implements Injector {
 	/*
 	 *  Creates a new adapter, this is a convenience method.
 	 */
-	public static GuiceBridgeJitInjector create(AbstractModule guiceModule, Collection<Package> packages) {
-		return new GuiceBridgeJitInjector(Guice.createInjector(guiceModule),packages);
+	public static GuiceBridgeJitInjector create(AbstractModule guiceModule, Collection<String> packagePrefixes) {
+		return new GuiceBridgeJitInjector(Guice.createInjector(guiceModule),packagePrefixes);
 	}
 
 	/*
 	 *  Convenience method for creation.
 	 */
-	public static GuiceBridgeJitInjector create (AbstractModule guiceModule, Package... packages) {
-		return new GuiceBridgeJitInjector(Guice.createInjector(guiceModule),Arrays.asList(packages));
+	public static GuiceBridgeJitInjector create (AbstractModule guiceModule, String... packagePrefixes) {
+		return new GuiceBridgeJitInjector(Guice.createInjector(guiceModule),Arrays.asList(packagePrefixes));
 	}
 
 	/*
 	 *  Convenience method for creation.
 	 */
-	public static GuiceBridgeJitInjector create (Injector guiceInjector, Package... packages) {
-		return new GuiceBridgeJitInjector(guiceInjector, Arrays.asList(packages));
+	public static GuiceBridgeJitInjector create (Injector guiceInjector, String... packagePrefixes) {
+		return new GuiceBridgeJitInjector(guiceInjector, Arrays.asList(packagePrefixes));
 	}
 
-	public GuiceBridgeJitInjector(Injector guiceInjector, Collection<Package> packages) {
+	public GuiceBridgeJitInjector(Injector guiceInjector, Collection<String> packagePrefixes) {
 
 		this.guiceInjector = guiceInjector;
-		this.packageNames = new ArrayList<String>(packages.size());
+		this.packageNames = new ArrayList<String>(packagePrefixes.size());
 
-		for (Package packge : packages ) {
-			packageNames.add(packge.getName());
+		for (String packagePrefix : packagePrefixes) {
+			packageNames.add(packagePrefix);
 		}
 
 	}
