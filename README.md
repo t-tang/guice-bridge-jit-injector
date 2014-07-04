@@ -14,11 +14,11 @@ To enable the adapter, simply use the GuiceBridgeJitInjector instead of the regu
     GuiceIntoHK2Bridge guiceBridge = serviceLocator.getService(GuiceIntoHK2Bridge.class);
     //guiceBridge.bridgeGuiceInjector(Guice.createInjector(new GuiceModule()));
     // Undeclared bindings under org.ttang packages will be bound automatically by Guice
-    guiceBridge.bridgeGuiceInjector(GuiceBridgeJitInjector.create(new GuiceModule(), Package.getPackage("org.company.app")));
+    guiceBridge.bridgeGuiceInjector(GuiceBridgeJitInjector.create(new GuiceModule(), "org.company.app"));
 ```
 In a real application you will probably want to use this same Injector instance for your regular code as well, so you could pass the Guice injector to the Jersey ResourceConfig through a ServletContext attribute and use it to initialize the bridge.
 
-__The package requirement__
+__The package prefix requirement__
 
-Requiring the packages to be declared is needed to maintain compatibility with Jersey. Some of the Jersey internal classes fall through to Guice, unless these are filtered out, Jersey may fail because Guice can't honor the HK2 annotations.
+Requiring the package prefixes to be declared is needed to maintain compatibility with Jersey. Some of the Jersey internal classes fall through to Guice, unless these are filtered out, Jersey may fail because Guice can't honor the HK2 annotations.
 
