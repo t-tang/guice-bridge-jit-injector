@@ -1,7 +1,7 @@
 guice-bridge-jit-injector
 =========================
 
-__Get Guice to work nicely with Jersey-HK2__
+__Get Guice to work smoothly with Jersey-HK2__
 
 If are using Guice with __Jersey 2__, you will almost certainly need to inject Guice components into Jersey components. Unlike regular Guice, any Guice components injected into Jersey will need a binding declared in the Guice config. This adapter extends the capabilities of the bridge to include Guice JIT bindings and removes the need for pre-declaration.
 
