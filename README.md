@@ -22,3 +22,6 @@ __The package prefix requirement__
 
 Requiring the package prefixes to be declared is needed to maintain compatibility with Jersey. Some of the Jersey internal classes fall through to Guice, unless these are filtered out, Jersey may fail because Guice can't honor the HK2 annotations.
 
+__Notes__
+
+This project has been submitted to the HK2 team to be considered for inclusion in the Guice bridge.
