@@ -15,77 +15,80 @@
 
 package org.ttang.hk2;
 
-import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Binding;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
-import com.google.inject.MembersInjector;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import com.google.inject.Scope;
 import com.google.inject.TypeLiteral;
-import com.google.inject.spi.TypeConverterBinding;
 
-/**
- * This adapter extends the capabilities of the HK2-Guice bridge to include Guice JIT bindings
- * this removes the need to declare bindings for all Guice components which are to be injected
- * into Jersey.
- * 
- * To enable the adapter, simply use the GuiceBridgeJitInjector instead of the regular Guice injector.
- * 
- *    guiceBridge.bridgeGuiceInjector(GuiceBridgeJitInjector.create(new GuiceModule(), Package.getPackage("com.company.yourapp")));
- * 
- */
-public class GuiceBridgeJitInjector implements Injector {
+public class GuiceBridgeJitInjector implements InvocationHandler {
 
-	private Injector guiceInjector;
-	private Collection<String> packageNames;
+	public Injector injector;
 
-	/*
-	 *  Creates a new adapter, this is a convenience method.
-	 */
-	public static GuiceBridgeJitInjector create(AbstractModule guiceModule, Collection<String> packagePrefixes) {
-		return new GuiceBridgeJitInjector(Guice.createInjector(guiceModule),packagePrefixes);
-	}
+	private static Method getExistingBindingMethod;
+	private static Method getBindingMethod;
+	private static Method getTypeLiteralMethod;
+	private static Method getRawTypeMethod;
 
-	/*
-	 *  Convenience method for creation.
-	 */
-	public static GuiceBridgeJitInjector create (AbstractModule guiceModule, String... packagePrefixes) {
-		return new GuiceBridgeJitInjector(Guice.createInjector(guiceModule),Arrays.asList(packagePrefixes));
-	}
+	private Collection<String> packagePrefixes = new ArrayList<String>();
+	
+	static {
+		
+		try {
+			getExistingBindingMethod =
+					Injector.class.getDeclaredMethod("getExistingBinding", new Class[]{Key.class});
 
-	/*
-	 *  Convenience method for creation.
-	 */
-	public static GuiceBridgeJitInjector create (Injector guiceInjector, String... packagePrefixes) {
-		return new GuiceBridgeJitInjector(guiceInjector, Arrays.asList(packagePrefixes));
-	}
+			getBindingMethod  =
+					Injector.class.getDeclaredMethod("getBinding", new Class[]{Key.class});
 
-	public GuiceBridgeJitInjector(Injector guiceInjector, Collection<String> packagePrefixes) {
+			getTypeLiteralMethod =
+					Key.class.getDeclaredMethod("getTypeLiteral");
 
-		this.guiceInjector = guiceInjector;
-		this.packageNames = new ArrayList<String>(packagePrefixes.size());
+			getRawTypeMethod =
+					TypeLiteral.class.getDeclaredMethod("getRawType");
 
-		for (String packagePrefix : packagePrefixes) {
-			packageNames.add(packagePrefix);
+		} catch (NoSuchMethodException e) {
+			// Convert to runtime exception, since it's meaningless to continue
+			throw new RuntimeException(e);
 		}
+	}
+	
+	/*
+	 *  Create from module
+	 */
+	public static Injector create(AbstractModule guiceModule, String... packagePrefixes) {
+		return create(Guice.createInjector(guiceModule),packagePrefixes);
+	}
 
+	/*
+	 *  Create from injector
+	 */
+	public static Injector create(Injector injector, String... packagePrefixes) {
+
+		return (Injector) Proxy.newProxyInstance(
+				Injector.class.getClassLoader(),
+				new Class[] {Injector.class},
+				new GuiceBridgeJitInjector(injector, packagePrefixes));
+	}
+
+	private GuiceBridgeJitInjector(Injector injector, String... packagePrefixes) {
+		Collections.<String>addAll(this.packagePrefixes,packagePrefixes);
+		this.injector = injector;
 	}
 
 	private boolean isInsideTargettedPackage(Class<?> type) {
 		String packge = type.getPackage().getName();
-		for (String packageName : packageNames) {
-			if (packge.startsWith(packageName)) {
+		for (String packagePrefix : packagePrefixes) {
+			if (packge.startsWith(packagePrefix)) {
 				return true;
 			}
 		}
@@ -93,86 +96,17 @@ public class GuiceBridgeJitInjector implements Injector {
 		return false;
 	}
 
-	public Injector createChildInjector(Iterable<? extends Module> arg0) {
-		return guiceInjector.createChildInjector(arg0);
-	}
+	public Object invoke(Object proxy, Method method, Object[] args)
+			throws Throwable {
 
-	public Injector createChildInjector(Module... arg0) {
-		return guiceInjector.createChildInjector(arg0);
-	}
-
-	public <T> List<Binding<T>> findBindingsByType(TypeLiteral<T> arg0) {
-		return guiceInjector.findBindingsByType(arg0);
-	}
-
-	public Map<Key<?>, Binding<?>> getAllBindings() {
-		return guiceInjector.getAllBindings();
-	}
-
-	public <T> Binding<T> getBinding(Class<T> arg0) {
-		return guiceInjector.getBinding(arg0);
-	}
-
-	public <T> Binding<T> getBinding(Key<T> arg0) {
-		return guiceInjector.getBinding(arg0);
-	}
-
-	public Map<Key<?>, Binding<?>> getBindings() {
-		return guiceInjector.getBindings();
-	}
-
-	public <T> Binding<T> getExistingBinding(Key<T> arg0) {
-
-		Binding<T> binding = guiceInjector.getExistingBinding(arg0);
+		Object result = method.invoke(injector, args);
 		
-		if (binding != null) {
-			return binding;
+		if (result == null && method.equals(getExistingBindingMethod)) {
+			if (isInsideTargettedPackage((Class<?>) getRawTypeMethod.invoke(getTypeLiteralMethod.invoke(args[0])))) {
+				return getBindingMethod.invoke(injector,args[0]);
+			}
 		}
 
-		if (isInsideTargettedPackage(arg0.getTypeLiteral().getRawType())) {
-				return guiceInjector.getBinding(arg0);
-		}
-
-		return null;
-	}
-
-	public <T> T getInstance(Class<T> arg0) {
-		return guiceInjector.getInstance(arg0);
-	}
-
-	public <T> T getInstance(Key<T> arg0) {
-		return guiceInjector.getInstance(arg0);
-	}
-
-	public <T> MembersInjector<T> getMembersInjector(Class<T> arg0) {
-		return guiceInjector.getMembersInjector(arg0);
-	}
-
-	public <T> MembersInjector<T> getMembersInjector(TypeLiteral<T> arg0) {
-		return guiceInjector.getMembersInjector(arg0);
-	}
-
-	public Injector getParent() {
-		return guiceInjector.getParent();
-	}
-
-	public <T> Provider<T> getProvider(Class<T> arg0) {
-		return guiceInjector.getProvider(arg0);
-	}
-
-	public <T> Provider<T> getProvider(Key<T> arg0) {
-		return guiceInjector.getProvider(arg0);
-	}
-
-	public Map<Class<? extends Annotation>, Scope> getScopeBindings() {
-		return guiceInjector.getScopeBindings();
-	}
-
-	public Set<TypeConverterBinding> getTypeConverterBindings() {
-		return guiceInjector.getTypeConverterBindings();
-	}
-
-	public void injectMembers(Object arg0) {
-		guiceInjector.injectMembers(arg0);
+		return result;
 	}
 }

@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ttang.hk2</groupId>
   <artifactId>guice-bridge-jit-injector</artifactId>
-  <version>2.2.0-b01</version>
+  <version>2.2.0-b02</version>
   <name>HK2 Guice Bridge JIT Adapter</name>
   <dependencies>
   	<dependency>
