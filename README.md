@@ -25,3 +25,7 @@ Requiring the package prefixes to be declared is needed to maintain compatibilit
 __Notes__
 
 This project has been submitted to the HK2 team to be considered for inclusion in the Guice bridge.
+
+__Changes__
+
+2.2.0-b02 - Refactored to use java.lang.reflect.Proxy to remove boilerplate forwarding methods.
